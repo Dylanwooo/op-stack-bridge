@@ -18,4 +18,4 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## About the project
 
-`DylanSwap` is just a demo project to practice
+Simple bridging app based on [Op Stack standard](https://docs.optimism.io/builders/app-developers/bridging/standard-bridge)
