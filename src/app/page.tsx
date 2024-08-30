@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   ArrowRight,
   ArrowLeft,
   Clock,
   Wallet,
+  ChartNetwork,
   ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -13,6 +14,9 @@ import { Input } from "@/components/ui/Input";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Image from "next/image";
 import { useTokenBalance } from "@/hooks";
+import { useAccount } from "wagmi";
+import { formatAddress, formatAmount } from "@/lib/utils";
+import { MegaETHLogo } from "@/components/ui/MegaETHLogo";
 
 enum BridgeMode {
   Deposit = "deposit",
@@ -21,7 +25,22 @@ enum BridgeMode {
 
 export default function Component() {
   const [mode, setMode] = useState<BridgeMode>(BridgeMode.Deposit);
+  const [inputAmount, setInputAmount] = useState<string>("");
+
   const { formatted } = useTokenBalance();
+  const { address } = useAccount();
+
+  const handleInputChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value;
+      // Only allow numbers and a single decimal point
+      if (/^\d*\.?\d*$/.test(value)) {
+        setInputAmount(value);
+      }
+    },
+    []
+  );
+
   return (
     <div className="min-h-screen bg-blue-500 flex flex-col">
       {/* Header */}
@@ -36,14 +55,12 @@ export default function Component() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-grow flex justify-center items-center p-4">
+      <main className="flex-grow flex justify-center items-center p-4 pb-3">
         <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
           {/* MegaETH Header */}
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold">M</span>
-              </div>
+              <MegaETHLogo />
               <span className="font-bold text-xl">MegaETH</span>
             </div>
             <div className="flex space-x-2">
@@ -68,36 +85,53 @@ export default function Component() {
 
           {/* From/To Section */}
           <div className="flex items-center justify-between bg-gray-100 rounded-lg p-3 mb-4">
-            <div className="flex items-center space-x-2">
-              <Image
-                src="https://superbridge.app/img/network-ethereum.svg"
-                alt="Ethereum logo"
-                width={24}
-                height={24}
-              />
-              <div>
-                <p className="text-xs text-gray-500">
-                  {mode === BridgeMode.Deposit ? "From" : "To"}
-                </p>
-                <p className="font-medium">Ethereum</p>
-              </div>
-            </div>
             {mode === BridgeMode.Deposit ? (
-              <ArrowRight className="text-gray-400" />
+              <>
+                <div className="flex items-center space-x-2">
+                  <Image
+                    src="https://superbridge.app/img/network-ethereum.svg"
+                    alt="Ethereum logo"
+                    width={24}
+                    height={24}
+                  />
+                  <div>
+                    <p className="text-xs text-gray-500">From</p>
+                    <p className="font-medium">Ethereum</p>
+                  </div>
+                </div>
+                <ArrowRight className="text-gray-400" />
+                <div className="flex items-center space-x-2">
+                  <MegaETHLogo />
+                  <div>
+                    <p className="text-xs text-gray-500">To</p>
+                    <p className="font-medium">MegaETH</p>
+                  </div>
+                </div>
+              </>
             ) : (
-              <ArrowLeft className="text-gray-400" />
+              <>
+                <div className="flex items-center space-x-2">
+                  <MegaETHLogo />
+                  <div>
+                    <p className="text-xs text-gray-500">From</p>
+                    <p className="font-medium">MegaETH</p>
+                  </div>
+                </div>
+                <ArrowRight className="text-gray-400" />
+                <div className="flex items-center space-x-2">
+                  <Image
+                    src="https://superbridge.app/img/network-ethereum.svg"
+                    alt="Ethereum logo"
+                    width={24}
+                    height={24}
+                  />
+                  <div>
+                    <p className="text-xs text-gray-500">To</p>
+                    <p className="font-medium">Ethereum</p>
+                  </div>
+                </div>
+              </>
             )}
-            <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs">M</span>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">
-                  {mode === BridgeMode.Deposit ? "To" : "From"}
-                </p>
-                <p className="font-medium">MegaETH</p>
-              </div>
-            </div>
           </div>
 
           {/* Amount Input */}
@@ -105,26 +139,31 @@ export default function Component() {
             <div className="flex justify-between items-center mb-2">
               <Input
                 type="text"
-                value={formatted}
-                className="text-4xl font-bold w-full bg-transparent border-none outline-none p-0"
+                value={formatAmount(inputAmount)}
+                onChange={handleInputChange}
+                className="text-4xl flex-3 font-bold w-full bg-transparent border-none outline-none p-0 mr-1"
               />
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-full flex items-center space-x-1 bg-white"
+                className="rounded-full flex-1 flex items-center space-x-1 bg-white"
               >
-                <Image
-                  src="https://superbridge.app/img/network-ethereum.svg"
-                  alt="Ethereum logo"
-                  width={16}
-                  height={16}
-                />
+                {mode === BridgeMode.Deposit ? (
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center">
+                    <Image
+                      src="https://superbridge.app/img/network-ethereum.svg"
+                      alt="Ethereum logo"
+                      width={22}
+                      height={22}
+                    />
+                  </div>
+                ) : (
+                  <MegaETHLogo />
+                )}
                 <span className="text-sm font-medium">ETH</span>
-                <ChevronDown className="h-4 w-4 ml-1" />
               </Button>
             </div>
-            <div className="flex justify-between text-sm text-gray-500">
-              <span>$2.032</span>
+            <div className="flex justify-end text-sm text-gray-500">
               <span>{formatted} ETH available</span>
             </div>
           </div>
@@ -136,7 +175,9 @@ export default function Component() {
                 <ArrowRight className="text-gray-400" />
                 <span className="text-sm">To address</span>
               </div>
-              <span className="text-sm text-green-500">0x1F...88ec</span>
+              <span className="text-sm text-green-500">
+                {address ? formatAddress(address) : "-"}
+              </span>
             </div>
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2">
@@ -146,7 +187,7 @@ export default function Component() {
                   {mode === BridgeMode.Deposit ? "MegaETH" : "Ethereum"}
                 </span>
               </div>
-              <span className="text-sm">$2.028 0.000798 ETH</span>
+              <span className="text-sm">{formatAmount(inputAmount)} ETH</span>
             </div>
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2">
@@ -157,20 +198,8 @@ export default function Component() {
             </div>
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2">
-                <svg
-                  className="w-4 h-4 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
-                  />
-                </svg>
+                <ChartNetwork className="text-gray-400" />
+
                 <span className="text-sm">Network fees</span>
               </div>
               <span className="text-sm">$1.9726 0.0008 ETH</span>
