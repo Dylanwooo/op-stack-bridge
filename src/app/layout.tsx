@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Header from "../components/Header";
+import "@rainbow-me/rainbowkit/styles.css";
+import { PageLayout } from "@/components";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "DylanSwap App",
+  title: "OP Stack Bridge",
   description: "Next generation of Defi",
 };
 
@@ -18,8 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Header />
-        {children}
+        <PageLayout>{children}</PageLayout>
       </body>
     </html>
   );

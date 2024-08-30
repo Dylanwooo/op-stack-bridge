@@ -1,4 +1,12 @@
+"use client";
+
 import React from "react";
+import { wagmiConfig } from "@/lib/configs";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { WagmiProvider } from "wagmi";
+
+const queryClient = new QueryClient();
 
 export default function PageLayout({
   children,
@@ -6,8 +14,10 @@ export default function PageLayout({
   children: React.ReactNode;
 }) {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      {children}
-    </main>
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider>{children}</RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 }
