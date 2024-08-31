@@ -1,12 +1,18 @@
 "use client";
 
 import React, { useCallback } from "react";
-import { ArrowRight, Clock, Wallet, ChartNetwork } from "lucide-react";
+import {
+  ArrowRight,
+  Clock,
+  Wallet,
+  ChartNetwork,
+  AlertCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Image from "next/image";
-import { useTokenBalance, useEstimatedGasFee } from "@/hooks";
+import { useTokenBalance, useEstimatedGasFee, useValidation } from "@/hooks";
 import { useAccount } from "wagmi";
 import { formatAddress, formatAmount } from "@/lib/utils";
 import { MegaETHLogo } from "@/components/ui/MegaETHLogo";
@@ -19,16 +25,22 @@ export default function Component() {
   const { formatted } = useTokenBalance();
   const { address } = useAccount();
   const estimatedGasFee = useEstimatedGasFee();
+  const errMsg = useValidation(inputAmount);
 
   const handleInputChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = event.target.value;
-      // Only allow numbers
-      if (/^\d*$/.test(value)) {
-        setInputAmount(value);
-      }
+      setInputAmount(value);
     },
     [setInputAmount]
+  );
+
+  const handleSwitchMode = useCallback(
+    (mode: BridgeMode) => {
+      setMode(mode);
+      setInputAmount("");
+    },
+    [setInputAmount, setMode]
   );
 
   return (
@@ -58,7 +70,7 @@ export default function Component() {
                 variant={mode === BridgeMode.Deposit ? "active" : "default"}
                 size="sm"
                 className="rounded-full"
-                onClick={() => setMode(BridgeMode.Deposit)}
+                onClick={() => handleSwitchMode(BridgeMode.Deposit)}
               >
                 Deposit
               </Button>
@@ -66,7 +78,7 @@ export default function Component() {
                 variant={mode === BridgeMode.Withdraw ? "active" : "default"}
                 size="sm"
                 className="rounded-full"
-                onClick={() => setMode(BridgeMode.Withdraw)}
+                onClick={() => handleSwitchMode(BridgeMode.Withdraw)}
               >
                 Withdraw
               </Button>
@@ -128,7 +140,7 @@ export default function Component() {
           <div className="mb-4 bg-gray-100 rounded-lg p-4">
             <div className="flex justify-between items-center mb-2">
               <Input
-                type="text"
+                type="number"
                 value={formatAmount(inputAmount)}
                 onChange={handleInputChange}
                 className="text-4xl flex-3 font-bold w-full bg-transparent border-none outline-none p-0 mr-1"
@@ -159,6 +171,14 @@ export default function Component() {
               </span>
             </div>
           </div>
+
+          {/* Error Message Area */}
+          {errMsg && (
+            <div className="mb-4 p-2 bg-red-100 border border-red-300 rounded-md flex items-center space-x-2">
+              <AlertCircle className="text-red-500 h-5 w-5" />
+              <span className="text-sm text-red-700">{errMsg}</span>
+            </div>
+          )}
 
           {/* Transaction Details */}
           <div className="space-y-3 mb-6">
@@ -201,8 +221,16 @@ export default function Component() {
           </div>
 
           {/* Action Button */}
-          <Button className="w-full bg-black text-white py-6 rounded-lg font-medium">
-            {mode === BridgeMode.Deposit ? "Deposit" : "Withdraw"}
+          <Button
+            // @ts-ignore
+            disabled={errMsg}
+            className="w-full bg-black text-white py-6 rounded-lg font-medium"
+          >
+            {errMsg
+              ? errMsg
+              : mode === BridgeMode.Deposit
+              ? "Deposit"
+              : "Withdraw"}
           </Button>
         </div>
       </main>

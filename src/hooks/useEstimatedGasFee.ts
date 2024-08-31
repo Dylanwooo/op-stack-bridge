@@ -39,8 +39,11 @@ export const useEstimatedGasFee = () => {
     amount: parsedAmount,
   };
 
+  /**
+   * @dev when the balance is not enough, the gasEstimate will be null
+   */
   const gasEstimate = useEstimateGas({
-    chainId: sepolia?.id,
+    chainId: curChainId,
     data: txData.calldata ?? undefined,
     to: txData.to,
     value: txData.amount,
