@@ -1,44 +1,34 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
-import {
-  ArrowRight,
-  ArrowLeft,
-  Clock,
-  Wallet,
-  ChartNetwork,
-  ChevronDown,
-} from "lucide-react";
+import React, { useCallback } from "react";
+import { ArrowRight, Clock, Wallet, ChartNetwork } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Image from "next/image";
-import { useTokenBalance } from "@/hooks";
+import { useTokenBalance, useEstimatedGasFee } from "@/hooks";
 import { useAccount } from "wagmi";
 import { formatAddress, formatAmount } from "@/lib/utils";
 import { MegaETHLogo } from "@/components/ui/MegaETHLogo";
-
-enum BridgeMode {
-  Deposit = "deposit",
-  Withdraw = "withdraw",
-}
+import { useBridgeState, BridgeMode } from "@/components/Context";
+import { formatEther } from "viem";
 
 export default function Component() {
-  const [mode, setMode] = useState<BridgeMode>(BridgeMode.Deposit);
-  const [inputAmount, setInputAmount] = useState<string>("");
+  const { mode, setMode, inputAmount, setInputAmount } = useBridgeState();
 
   const { formatted } = useTokenBalance();
   const { address } = useAccount();
+  const estimatedGasFee = useEstimatedGasFee();
 
   const handleInputChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = event.target.value;
-      // Only allow numbers and a single decimal point
-      if (/^\d*\.?\d*$/.test(value)) {
+      // Only allow numbers
+      if (/^\d*$/.test(value)) {
         setInputAmount(value);
       }
     },
-    []
+    [setInputAmount]
   );
 
   return (
@@ -164,7 +154,9 @@ export default function Component() {
               </Button>
             </div>
             <div className="flex justify-end text-sm text-gray-500">
-              <span>{formatted} ETH available</span>
+              <span>
+                {formatted} ETH <span className="text-gray-500">available</span>
+              </span>
             </div>
           </div>
 
@@ -202,7 +194,9 @@ export default function Component() {
 
                 <span className="text-sm">Network fees</span>
               </div>
-              <span className="text-sm">$1.9726 0.0008 ETH</span>
+              <span className="text-sm">
+                {formatEther(estimatedGasFee)} ETH
+              </span>
             </div>
           </div>
 
