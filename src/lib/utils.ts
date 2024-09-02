@@ -16,9 +16,26 @@ export function formatAmount(
   precision = 4,
   defaultVal = "0"
 ) {
+  if (num === 0 || num === "0") return "0";
   if (!num) return defaultVal;
 
-  if (Number(num) < 1) return new BigNumber(num).dp(precision, 1).toString();
+  const bn = new BigNumber(num);
 
-  return new BigNumber(num).dp(precision, 1).toNumber().toLocaleString("en-US");
+  if (bn.isLessThan(1)) {
+    return bn.toFixed(precision);
+  }
+
+  if (bn.isInteger()) {
+    return bn.toFormat(0, {
+      groupSize: 3,
+      groupSeparator: ",",
+      decimalSeparator: ".",
+    });
+  }
+
+  return bn.toFormat(precision, {
+    groupSize: 3,
+    groupSeparator: ",",
+    decimalSeparator: ".",
+  });
 }

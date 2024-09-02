@@ -23,7 +23,7 @@ export default function Component() {
   const { mode, setMode, inputAmount, setInputAmount } = useBridgeState();
 
   const { formatted } = useTokenBalance();
-  const { address } = useAccount();
+  const { address, isConnected, isConnecting } = useAccount();
   const estimatedGasFee = useEstimatedGasFee();
   const errMsg = useValidation(inputAmount);
 
@@ -49,15 +49,15 @@ export default function Component() {
       <header className="w-full p-4 flex justify-between items-center">
         <div className="flex items-center space-x-2 text-white">
           <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-            <span className="text-blue-500 font-bold">SB</span>
+            <span className="text-blue-500 font-bold">MB</span>
           </div>
-          <span className="font-bold text-lg">SUPERBRIDGE</span>
+          <span className="font-bold text-lg">MEGABRIDGE</span>
         </div>
         <ConnectButton />
       </header>
 
       {/* Main Content */}
-      <main className="flex-grow flex justify-center items-center p-4 pb-3">
+      <main className="flex-grow flex justify-center items-center p-4 pb-8">
         <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
           {/* MegaETH Header */}
           <div className="flex justify-between items-center mb-4">
@@ -141,8 +141,9 @@ export default function Component() {
             <div className="flex justify-between items-center mb-2">
               <Input
                 type="number"
-                value={formatAmount(inputAmount)}
+                value={inputAmount}
                 onChange={handleInputChange}
+                placeholder="Input amount"
                 className="text-4xl flex-3 font-bold w-full bg-transparent border-none outline-none p-0 mr-1"
               />
               <Button
@@ -215,7 +216,7 @@ export default function Component() {
                 <span className="text-sm">Network fees</span>
               </div>
               <span className="text-sm">
-                {formatEther(estimatedGasFee)} ETH
+                ~ {formatEther(estimatedGasFee)} ETH
               </span>
             </div>
           </div>
@@ -223,7 +224,7 @@ export default function Component() {
           {/* Action Button */}
           <Button
             // @ts-ignore
-            disabled={errMsg}
+            disabled={errMsg || isConnecting || !isConnected}
             className="w-full bg-black text-white py-6 rounded-lg font-medium"
           >
             {errMsg

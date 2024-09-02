@@ -6,25 +6,23 @@ import { formatEther } from "viem";
 
 export const useValidation = (inputAmount: string) => {
   const estimatedGasFee = useEstimatedGasFee();
-
-  const { formatted } = useTokenBalance();
+  const { formatted: balance } = useTokenBalance();
 
   return useMemo(() => {
-    if (!inputAmount || !formatted) {
+    if (!inputAmount || !balance || !estimatedGasFee) {
       return null;
     }
 
     const bnInputAmount = new BigNumber(inputAmount);
-    const balance = new BigNumber(formatted);
+    const bnBalance = new BigNumber(balance);
+    const bnGasFee = new BigNumber(formatEther(estimatedGasFee));
 
-    const totalRequired = bnInputAmount.plus(
-      formatEther(BigInt(estimatedGasFee.toString()))
-    );
+    const totalRequired = bnInputAmount.plus(bnGasFee);
 
-    if (totalRequired.isGreaterThan(balance)) {
+    if (totalRequired.isGreaterThan(bnBalance)) {
       return "Insufficient balance";
     }
 
     return null;
-  }, [inputAmount, formatted, estimatedGasFee]);
+  }, [inputAmount, balance, estimatedGasFee]);
 };
